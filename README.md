@@ -2,15 +2,20 @@
 
 RAGX是一个RAG评测系统，收集RAG系统匹配的结果，并对比不同方法的结果的差异
 
+### 构建
+```
+docker build -t ragx:0.1 .
+```
+
 ### 运行
 ```
 docker run -d --name=ragx \
     -p 5610:5610 \
-    -e MYSQL_HOST="localhost" \
-    -e MYSQL_PORT=3306 \
-    -e MYSQL_DB="ragx" \
-    -e MYSQL_USER="root" \
-    -e MYSQL_PASSWORD="123456" \
+    -e DB_HOST="localhost" \
+    -e DB_PORT=5432 \
+    -e DB_DB="ragx" \
+    -e DB_USER="postgres" \
+    -e DB_PASSWORD="123456" \
     ragx:0.1
 ```
 
