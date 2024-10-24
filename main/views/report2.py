@@ -32,14 +32,27 @@ class Report2View(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        serializer = serializers.Report2Serializer(data=request.data)
+        serializer = serializers.Report2Serializer(data=request.data,
+                                                   many=True)
+        instances_to_create = []
+        instances_to_update = []
         if serializer.is_valid():
-            serializer.instance = self.get_by_query(
-                query=serializer.validated_data.get("query"),
-                method=serializer.validated_data.get("method"),
-                project_id=serializer.validated_data.get("project_id"),
-                paragraph_id=serializer.validated_data.get("paragraph_id"))
-            serializer.save()
+            for item in serializer.validated_data:
+                instance = self.get_by_query(
+                    query=item.get("query"),
+                    method=item.get("method"),
+                    project_id=item.get("project_id"),
+                    paragraph_id=item.get("paragraph_id"))
+                if instance is None:
+                    instances_to_create.append(models.Report2(**item))
+                else:
+                    instance.paragraph_title = item.get("paragraph_title")
+                    instance.paragraph_content = item.get("paragraph_content")
+                    instances_to_update.append(instance)
+            if instances_to_create:
+                models.Report2.objects.bulk_create(instances_to_create)
+            if instances_to_update:
+                models.Report2.objects.bulk_update(instances_to_update, ["paragraph_title", "paragraph_content"]) 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -58,7 +71,7 @@ class Report2View(APIView):
 
 # class ResultItem(object):
 #     def __init__(self, query, method, paragraph_id):
-#         self.query = query  
+#         self.query = query
 #         self.method = method
 #         self.paragraph_id = paragraph_id
 
@@ -68,7 +81,7 @@ class Report2View(APIView):
 #         self.query = query
 #         self.intersection = []
 #         self.items = []
-    
+
 #     def add_item(self, item: ResultItem):
 #         current_item = None
 #         for item in self.items:
@@ -76,8 +89,8 @@ class Report2View(APIView):
 #                 current_item = item
 #                 break
 #         if current_item is None:
-#             current_item = 
-        
+#             current_item =
+
 #         current_item
 
 
@@ -109,7 +122,7 @@ class Report2ListView(APIView):
                     "negative": 0
                 }
                 items.append(current_item)
-            
+
             current_item["paragraphs"].append({
                 "id": report.paragraph_id,
                 "title": report.paragraph_title,

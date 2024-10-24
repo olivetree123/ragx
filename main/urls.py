@@ -9,6 +9,7 @@ urlpatterns = [
     re_path('project/(?P<project_id>[0-9]+)', views.ProjectView.as_view()),
 
     re_path('reports', views.ReportListView.as_view()),
+    re_path('report2', views.Report2View.as_view()),
     re_path('report', views.ReportView.as_view()),
     re_path('report/(?P<report_id>[0-9]+)', views.ReportView.as_view()),
 ]
