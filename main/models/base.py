@@ -1,11 +1,29 @@
-from django.db import models
+import uuid
+
+from django.db.models import (
+    Model,
+    AutoField,
+    CharField,
+    BooleanField,
+    DateTimeField,
+)
 from django.utils import timezone
 
 
-class BaseModel(models.Model):
-    id = models.AutoField(primary_key=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(default=timezone.now)
+def get_uid():
+    return uuid.uuid4().hex
+
+
+class BaseModel(Model):
+    _id = AutoField(primary_key=True)
+    id = CharField(max_length=32, unique=True, db_index=True, default=get_uid)
+    created_at = DateTimeField(auto_now_add=timezone.now)
+    updated_at = DateTimeField(auto_now=timezone.now)
+    is_deleted = BooleanField(default=False)
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def get_by_id(cls, id):
+        return cls.objects.filter(id=id).first()
