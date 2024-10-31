@@ -3,16 +3,15 @@ from main import (
     params,
     results,
 )
-from main.response import OKResponse, FailedResponse
+from main.response import BadRequestError
 
 
 def GetReportHandler(request, report_id: str):
     try:
         report = models.Report.objects.get(id=report_id)
     except models.Report.DoesNotExist:
-        raise FailedResponse(code=400, message="Report not found")
-    data = results.ReportResult.from_orm(report)
-    return OKResponse(data=data)
+        raise BadRequestError(message="Report not found")
+    return results.ReportResult.from_orm(report)
 
 
 def CreateReportHandler(request, param: params.CreateReportParam):
@@ -34,7 +33,7 @@ def CreateReportHandler(request, param: params.CreateReportParam):
     if instances_to_update:
         models.Report.objects.bulk_update(
             instances_to_update, ["paragraph_title", "paragraph_content"])
-    return OKResponse()
+    return {}
 
 
 def UpdateReportHandler(request, report_id: str,
@@ -42,24 +41,24 @@ def UpdateReportHandler(request, report_id: str,
     try:
         report = models.Report.objects.get(id=report_id)
     except models.Report.DoesNotExist:
-        return FailedResponse(code=400, message="Report not found")
+        return BadRequestError(message="Report not found")
     report.update(**param.dict())
-    return OKResponse()
+    return results.ReportResult.from_orm(report)
 
 
 def DeleteReportHandler(request, report_id: str):
     print(f"pretend to delete report where report_id={report_id}")
-    return OKResponse()
+    return {}
 
 
 def SetReportStatusHandler(request, report_id: str, status: int):
     try:
         report = models.Report.objects.get(id=report_id)
     except models.Report.DoesNotExist:
-        return FailedResponse(code=400, message="Report not found")
+        return BadRequestError(message="Report not found")
     report.match_status = status
     report.save()
-    return OKResponse(data=results.ReportResult.from_orm(report))
+    return results.ReportResult.from_orm(report)
 
 
 # class ResultItem(object):
@@ -118,4 +117,4 @@ def ListReportHandler(request):
             "title": report.paragraph_title,
             "status": 0,
         })
-    return OKResponse(data=list(result.values()))
+    return list(result.values())
