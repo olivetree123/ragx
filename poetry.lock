@@ -400,6 +400,20 @@ doc = ["markdown-include", "mkdocs", "mkdocs-material", "mkdocstrings"]
 test = ["django-stubs", "mypy (==1.7.1)", "psycopg2-binary", "pytest", "pytest-asyncio", "pytest-cov", "pytest-django", "ruff (==0.5.7)"]
 
 [[package]]
+name = "dottoml"
+version = "0.1.5"
+description = "Environment in TOML format."
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "dottoml-0.1.5-py3-none-any.whl", hash = "sha256:0c4b85cf5272112b684ed2302159d66bfe91e9b45308dbbe81f1a186927ba242"},
+    {file = "dottoml-0.1.5.tar.gz", hash = "sha256:dfc926c2bed292570fe217b3eeee7f899a7d877080a473137b8a61e872bdbaf1"},
+]
+
+[package.dependencies]
+tomli = "2.0.1"
+
+[[package]]
 name = "dulwich"
 version = "0.21.7"
 description = "Python Git Library"
@@ -1346,4 +1360,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "1e135db318288d29fd6bf72ad863ddd0b5a108073519b8bc5a54e49ab3e5eac6"
+content-hash = "0e5f0b56c821335de8bface5bb6122c38d1a99b93f503c3fc16549b45e9b7174"

@@ -12,8 +12,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 
+from dottoml.main import load_env
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = load_env()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -22,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-4w#)5++tr&so25746edfk!cgbqb(ti$)v7jgjvmebighp7v26w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.get_bool("DEBUG", True)
 
 ALLOWED_HOSTS = []
 
@@ -80,12 +84,12 @@ WSGI_APPLICATION = 'ragx.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.getenv("DB_NAME", "ragx.db"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "1q2w3e"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", 5432),
+        'ENGINE': env.get_str("DB_ENGINE"),
+        'NAME': env.get_str("DB_NAME"),
+        "USER": env.get_str("DB_USER"),
+        "PASSWORD": env.get_str("DB_PASSWORD"),
+        "HOST": env.get_str("DB_HOST"),
+        "PORT": env.get_int("DB_PORT"),
     }
 }
 
@@ -132,4 +136,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-RAGX_BASE_URL = os.getenv("RAG_BASE_URL", "http://localhost:5610")
+RAGX_BASE_URL = env.get_str("RAGX_BASE_URL")

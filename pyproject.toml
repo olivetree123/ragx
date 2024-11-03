@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ragx"
-version = "0.1.0"
+version = "0.3.0"
 description = ""
 authors = ["gaojian <olivetree123@163.com>"]
 license = "MIT"
@@ -53,6 +53,7 @@ virtualenv = "20.26.6"
 zipp = "3.20.2"
 python-dotenv = "^1.0.1"
 psycopg2-binary = "^2.9.9"
+dottoml = "0.1.5"
 
 
 [build-system]
