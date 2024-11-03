@@ -135,5 +135,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-RAGX_BASE_URL = env.get_str("RAGX_BASE_URL")

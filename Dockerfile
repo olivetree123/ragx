@@ -10,8 +10,6 @@ RUN pip install poetry && poetry config virtualenvs.create false && poetry insta
 
 COPY . .
 
-RUN rm -rf /app/.venv
-
 EXPOSE 5610
 
 CMD [ "gunicorn", "-c", "gunicorn_config.py", "ragx.wsgi" ]
