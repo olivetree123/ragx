@@ -10,4 +10,4 @@ class ReportResult(BaseResult):
     paragraph_title: str
     paragraph_content: str
     project_id: str
-    match_status: int
+    score: int

@@ -1,3 +1,5 @@
+from copy import copy
+
 from main import (
     models,
     params,
@@ -19,7 +21,7 @@ def CreateReportHandler(request, param: params.CreateReportParam):
     instances_to_update = []
     for item in param.reports:
         instance = models.Report.get_by_query(query=item.query,
-                                              method=item.method,
+                                              methods=[item.method],
                                               paragraph_id=item.paragraph_id,
                                               project_id=item.project_id)
         if instance is None:
@@ -51,12 +53,15 @@ def DeleteReportHandler(request, report_id: str):
     return {}
 
 
-def SetReportStatusHandler(request, report_id: str, status: int):
-    try:
-        report = models.Report.objects.get(id=report_id)
-    except models.Report.DoesNotExist:
+def MarkReportHandler(request, param: params.MarkReportParam):
+    """给报告打分"""
+    report = models.Report.get_by_query(query=param.query,
+                                        methods=param.methods,
+                                        paragraph_id=param.paragraph_id,
+                                        project_id=param.project_id)
+    if not report:
         return BadRequestError(message="Report not found")
-    report.match_status = status
+    report.score = param.score
     report.save()
     return results.ReportResult.from_orm(report)
 
@@ -85,15 +90,26 @@ def SetReportStatusHandler(request, report_id: str, status: int):
 #         current_item
 
 
-def ListReportHandler(request):
+def ListReportMethodsHandler(request):
+    # distinct 操作可以利用索引来提高查询性能
+    # 如果你使用的是 PostgreSQL 数据库，可以使用 distinct 和 order_by 结合的方式来进一步优化查询性能
+    rs = models.Report.objects.order_by("method").values("method").distinct()
+    rs = [r["method"] for r in rs]
+    return rs
+
+
+def ListReportHandler(request, param: params.ListReportParam):
+    # begin = (param.page - 1) * param.page_size
     reports = models.Report.objects.all()
+    if param.methods:
+        reports = reports.filter(method__in=param.methods)
+    # reports = reports[begin:begin + param.page_size]
     result = {}
     for report in reports:
         query = report.query
         if query not in result:
             result[query] = {
                 "query": report.query,
-                "intersection": [],
                 "items": [],
                 "project_id": report.project_id,
             }
@@ -115,6 +131,31 @@ def ListReportHandler(request):
         current_item["paragraphs"].append({
             "id": report.paragraph_id,
             "title": report.paragraph_title,
-            "status": 0,
+            "score": report.score,
         })
+
+    # 计算交集
+    for _, value in result.items():
+        intersection = []
+        intersection_ids = set()
+        items = value["items"]
+        if len(items) > 1:
+            intersection_ids = set([p["id"] for p in items[0]["paragraphs"]])
+            for item in items[1:]:
+                intersection_ids = intersection_ids & set(
+                    [p["id"] for p in item["paragraphs"]])
+            # value["intersection"] = list(intersection)
+
+        for i, item in enumerate(items):
+            paragraphs = item["paragraphs"]
+            for j in range(len(paragraphs)):
+                if paragraphs[j]["id"] in intersection_ids:
+                    if i == 0:
+                        intersection.append(copy(paragraphs[j]))
+                    paragraphs[j] = None
+            items[i]["paragraphs"] = [p for p in paragraphs if p is not None]
+
+        value["intersection"] = intersection
+        value["intersection_ids"] = list(intersection_ids)
+        value["items"] = sorted(items, key=lambda x: x["method"])
     return list(result.values())

@@ -206,14 +206,12 @@ project_router.get("{project_id}/update",
                    summary="| 更新项目信息",
                    response=results.ProjectResult)
 
+report_router.get("methods", report.ListReportMethodsHandler, summary="| 创建报告")
 report_router.post("create",
                    report.CreateReportHandler,
                    summary="| 创建报告",
                    response=Dict[Any, Any])
-report_router.get("list",
-                  report.ListReportHandler,
-                  summary="| 获取报告列表",
-                  response=List[results.ReportResult])
+report_router.post("list", report.ListReportHandler, summary="| 获取报告列表")
 report_router.get("{report_id}/get",
                   report.GetReportHandler,
                   summary="| 获取报告详情",
@@ -221,6 +219,10 @@ report_router.get("{report_id}/get",
 report_router.post("{report_id}/update",
                    report.UpdateReportHandler,
                    summary="| 更新报告",
+                   response=results.ReportResult)
+report_router.post("mark",
+                   report.MarkReportHandler,
+                   summary="| 给报告打分",
                    response=results.ReportResult)
 
 # urlpatterns = []

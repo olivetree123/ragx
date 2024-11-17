@@ -1,2 +1,7 @@
 from main.params.project import CreateProjectParam
-from main.params.report import CreateReportParam, UpdateReportParam
+from main.params.report import (
+    CreateReportParam,
+    UpdateReportParam,
+    ListReportParam,
+    MarkReportParam,
+)
