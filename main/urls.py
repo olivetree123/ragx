@@ -7,13 +7,14 @@ from typing import (
     Callable,
 )
 
+from ninja import Redoc
 from ninja import NinjaAPI, Router
 from ninja.security import HttpBearer
 from ninja.throttling import BaseThrottle
 from ninja.constants import NOT_SET, NOT_SET_TYPE
 
 from main import results
-from main.handlers import project, report
+from main.handlers import project, report, document, paragraph
 
 
 class TokenAuth(HttpBearer):
@@ -181,13 +182,17 @@ class MyRouter(Router):
 #             data = OKResponse(data=data)
 #         return super().render(request, data, response_status=response_status)
 
-api = NinjaAPI(title="RAGX API", version="0.1.0")
+api = NinjaAPI(title="RAGX API", version="0.1.0", docs=Redoc())
 
 project_router = MyRouter(tags=["project"])
 report_router = MyRouter(tags=["report"])
+document_router = MyRouter(tags=["document"])
+paragraph_router = MyRouter(tags=["paragraph"])
 
 api.add_router("project", project_router)
 api.add_router("report", report_router)
+api.add_router("document", document_router)
+api.add_router("paragraph", paragraph_router)
 
 project_router.post("create",
                     project.CreateProjectHandler,
@@ -201,10 +206,10 @@ project_router.get("{project_id}/get",
                    project.GetProjectHandler,
                    summary="| 获取项目详情",
                    response=results.ProjectResult)
-project_router.get("{project_id}/update",
-                   project.UpdateProjectHandler,
-                   summary="| 更新项目信息",
-                   response=results.ProjectResult)
+project_router.post("{project_id}/update",
+                    project.UpdateProjectHandler,
+                    summary="| 更新项目信息",
+                    response=results.ProjectResult)
 
 report_router.get("methods", report.ListReportMethodsHandler, summary="| 创建报告")
 report_router.post("create",
@@ -225,4 +230,29 @@ report_router.post("mark",
                    summary="| 给报告打分",
                    response=results.ReportResult)
 
+document_router.post("",
+                     document.CreateDocumentHandler,
+                     summary="| 创建文档",
+                     response=results.DocumentResult)
+document_router.get("list",
+                    document.ListDocumentHandler,
+                    summary="| 获取文档列表",
+                    response=List[results.DocumentResult])
+# document_router.get("{document_id}",
+#                     document.GetDocumentHandler,
+#                     summary="| 获取文档详情",
+#                     response=results.DocumentResult)
+document_router.delete("{document_id}",
+                       document.DeleteDocumentHandler,
+                       summary="| 删除文档",
+                       response=Dict[str, bool])
+
+paragraph_router.get("list",
+                     paragraph.ListParagraphHandler,
+                     summary="| 获取段落列表",
+                     response=List[results.ParagraphResult])
+paragraph_router.get("{paragraph_id}",
+                     paragraph.GetParagraphHandler,
+                     summary="| 获取段落详情",
+                     response=results.ParagraphResult)
 # urlpatterns = []

@@ -19,6 +19,18 @@ docker run -d --name=ragx \
     ragx:0.1
 ```
 
+### 关于celery
+启动命令：
+```
+celery -A ragx worker --loglevel=info
+```
+为什么不需要指定 `celery.py` 文件路径呢？
+
+在 Celery 中，-A 选项用于指定 Celery 应用实例的名称，而不是文件路径。Celery 会根据你提供的应用名称自动找到并加载相应的配置。
+- 根据 -A ragx，Celery 知道要加载名为 ragx 的应用；
+- Celery 会查找 ragx 包，并在其中查找 celery.py 文件；
+- Celery 会加载 celery.py 文件中的 Celery 应用实例；
+
 ### API
 1. 创建项目
 ```

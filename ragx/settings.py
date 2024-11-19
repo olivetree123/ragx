@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-import os
 from pathlib import Path
 
 from pytomlenv import load_env
@@ -135,3 +134,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# redis
+REDIS_HOST = env.get_str("REDIS_HOST")
+REDIS_PORT = env.get_int("REDIS_PORT")
+
+# milvus
+MILVUS_HOST = env.get_str("MILVUS_HOST", "127.0.0.1")
+MILVUS_PORT = env.get_int("MILVUS_PORT", 19530)
+MILVUS_DB = env.get_str("MILVUS_DB", "default")
+MILVUS_COLLECTION = env.get_str("MILVUS_COLLECTION", "ragx")

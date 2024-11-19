@@ -19,7 +19,7 @@ class Report(BaseModel):
     paragraph_id = IntegerField(db_comment="匹配到的段落ID")
     paragraph_title = CharField(max_length=255, db_comment="匹配到的段落标题")
     paragraph_content = TextField(db_comment="匹配到的段落内容")
-    project_id = CharField(max_length=32, db_comment="所属项目ID")
+    project_id = CharField(max_length=32, db_comment="所属项目")
     score = SmallIntegerField(default=ParagraphStatus.UNKNOWN,
                               db_comment=f"得分：{ParagraphStatus.help_text()}")
 

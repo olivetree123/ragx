@@ -54,6 +54,11 @@ zipp = "3.20.2"
 python-dotenv = "^1.0.1"
 psycopg2-binary = "^2.9.9"
 pytomlenv = "^0.2.0"
+celery = "^5.4.0"
+redis = "^5.2.0"
+langchain = "^0.3.7"
+pymilvus = {extras = ["model"], version = "^2.4.9"}
+colorlog = "^6.9.0"
 
 
 [build-system]

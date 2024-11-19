@@ -1,3 +1,5 @@
+from django.db import IntegrityError
+
 from main import (
     models,
     params,
@@ -15,22 +17,30 @@ def GetProjectHandler(request, project_id: str):
 
 
 def CreateProjectHandler(request, param: params.CreateProjectParam):
-    project = models.Project.objects.create(**param.dict())
+    try:
+        project = models.Project.objects.create(**param.dict())
+    except IntegrityError:
+        raise BadRequestError("Project name already exists")
     return results.ProjectResult.from_orm(project)
 
 
-def UpdateProjectHandler(request, project_id: str):
+def UpdateProjectHandler(request, project_id: str,
+                         param: params.UpdateProjectParam):
     try:
         project = models.Project.objects.get(id=project_id)
     except models.Project.DoesNotExist:
         raise BadRequestError("Project not found")
-    project.update(**request.data)
+    if param.name:
+        project.name = param.name
+    if param.description:
+        project.description = param.description
+    project.save()
     return results.ProjectResult.from_orm(project)
 
 
 def DeleteProjectHandler(request, project_id: str):
-    print(f"pretend to delete project where project_id={project_id}")
-    return {}
+    models.Project.objects.filter(id=project_id).delete()
+    return {"success": True}
 
 
 def ListProjectHandler(request):
