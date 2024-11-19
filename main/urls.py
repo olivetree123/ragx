@@ -238,11 +238,11 @@ document_router.get("list",
                     document.ListDocumentHandler,
                     summary="| 获取文档列表",
                     response=List[results.DocumentResult])
-# document_router.get("{document_id}",
+# document_router.get("{doc_id}",
 #                     document.GetDocumentHandler,
 #                     summary="| 获取文档详情",
 #                     response=results.DocumentResult)
-document_router.delete("{document_id}",
+document_router.delete("{doc_id}",
                        document.DeleteDocumentHandler,
                        summary="| 删除文档",
                        response=Dict[str, bool])

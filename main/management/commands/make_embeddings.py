@@ -1,4 +1,3 @@
-import traceback
 from django.core.management.base import BaseCommand
 
 from main import models
@@ -26,15 +25,12 @@ class Command(BaseCommand):
                 sentences += _sentences
                 if not sentences:
                     continue
-                try:
-                    embeddings = EmbeddingFunction.call(sentences)
-                    Milvus.collection.insert([
-                        sentences,
-                        embeddings["sparse"],
-                        embeddings["dense"],
-                        parts,
-                        documents,
-                    ])
-                    models.Paragraph.update_embeddinged(paragraph_id=part.id)
-                except Exception:
-                    logger.error(traceback.format_exc())
+                embeddings = EmbeddingFunction.call(sentences)
+                Milvus.collection.insert([
+                    sentences,
+                    embeddings["sparse"],
+                    embeddings["dense"],
+                    parts,
+                    documents,
+                ])
+                models.Paragraph.update_embeddinged(paragraph_id=part.id)

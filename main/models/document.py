@@ -33,6 +33,10 @@ class Document(BaseModel):
     def list_unparagraphed(cls):
         return Document.objects.filter(is_paragraphed=False)
 
+    @classmethod
+    def update_paragraphed(cls, doc_id):
+        return Document.objects.filter(id=doc_id).update(is_paragraphed=True)
+
     def update(self, title, content, edit_at):
         self.title = title
         self.content = content
