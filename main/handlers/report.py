@@ -5,15 +5,19 @@ from main import (
     params,
     results,
 )
-from main.response import BadRequestError
+from main.response import (
+    OkResponse,
+    FailResponse,
+    APIStatus,
+)
 
 
 def GetReportHandler(request, report_id: str):
     try:
         report = models.Report.objects.get(id=report_id)
     except models.Report.DoesNotExist:
-        raise BadRequestError(message="Report not found")
-    return results.ReportResult.from_orm(report)
+        return FailResponse(code=APIStatus.OBJECT_NOT_FOUND)
+    return OkResponse(results.ReportResult.from_orm(report))
 
 
 def CreateReportHandler(request, param: params.CreateReportParam):
@@ -35,7 +39,7 @@ def CreateReportHandler(request, param: params.CreateReportParam):
     if instances_to_update:
         models.Report.objects.bulk_update(
             instances_to_update, ["paragraph_title", "paragraph_content"])
-    return {}
+    return OkResponse()
 
 
 def UpdateReportHandler(request, report_id: str,
@@ -43,14 +47,14 @@ def UpdateReportHandler(request, report_id: str,
     try:
         report = models.Report.objects.get(id=report_id)
     except models.Report.DoesNotExist:
-        return BadRequestError(message="Report not found")
+        return FailResponse(code=APIStatus.OBJECT_NOT_FOUND)
     report.update(**param.dict())
     return results.ReportResult.from_orm(report)
 
 
 def DeleteReportHandler(request, report_id: str):
-    print(f"pretend to delete report where report_id={report_id}")
-    return {}
+    models.Report.objects.filter(id=report_id).delete()
+    return OkResponse()
 
 
 def MarkReportHandler(request, param: params.MarkReportParam):
@@ -60,10 +64,10 @@ def MarkReportHandler(request, param: params.MarkReportParam):
                                         paragraph_id=param.paragraph_id,
                                         project_id=param.project_id)
     if not report:
-        return BadRequestError(message="Report not found")
+        return FailResponse(code=APIStatus.OBJECT_NOT_FOUND)
     report.score = param.score
     report.save()
-    return results.ReportResult.from_orm(report)
+    return OkResponse(results.ReportResult.from_orm(report))
 
 
 # class ResultItem(object):
@@ -95,7 +99,7 @@ def ListReportMethodsHandler(request):
     # 如果你使用的是 PostgreSQL 数据库，可以使用 distinct 和 order_by 结合的方式来进一步优化查询性能
     rs = models.Report.objects.order_by("method").values("method").distinct()
     rs = [r["method"] for r in rs]
-    return rs
+    return OkResponse(rs)
 
 
 def ListReportHandler(request, param: params.ListReportParam):
@@ -158,4 +162,4 @@ def ListReportHandler(request, param: params.ListReportParam):
         value["intersection"] = intersection
         value["intersection_ids"] = list(intersection_ids)
         value["items"] = sorted(items, key=lambda x: x["method"])
-    return list(result.values())
+    return OkResponse(list(result.values()))
