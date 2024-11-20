@@ -25,7 +25,8 @@ def ListParagraphHandler(request,
                          page: int = 0,
                          page_size: int = 10):
     if document_id:
-        return models.Paragraph.objects.filter(document_id=document_id)
-    rs = models.Paragraph.objects.filter(project_id=project_id)
+        rs = models.Paragraph.objects.filter(document_id=document_id)
+    else:
+        rs = models.Paragraph.objects.filter(project_id=project_id)
     rs = results.Pagination(page, page_size).paginate(rs)
     return OkResponse(data=[results.ParagraphResult.from_orm(r) for r in rs])
