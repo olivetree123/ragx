@@ -13,24 +13,30 @@ class Command(BaseCommand):
     help = """生成段落的向量"""
 
     def handle(self, *args, **options):
+        # Milvus.drop_collection("ragx")
+        Milvus.init()
         while True:
-            parts = list(models.Paragraph.list_unembeddinged()[:1000])
-            if not parts:
+            ps = list(models.Paragraph.list_unembeddinged()[:1000])
+            if not ps:
                 break
-            for part in parts:
+            for part in ps:
                 text = part.title + "\n" + part.content
                 _sentences = MarkChunkHandler.handle([text])
-                documents += [part.document_id] * len(_sentences)
-                parts += [part.id] * len(_sentences)
-                sentences += _sentences
+                documents = [part.document_id] * len(_sentences)
+                parts = [part.id] * len(_sentences)
+                sentences = _sentences
                 if not sentences:
                     continue
                 embeddings = EmbeddingFunction.call(sentences)
-                Milvus.collection.insert([
-                    sentences,
-                    embeddings["sparse"],
-                    embeddings["dense"],
-                    parts,
-                    documents,
-                ])
-                models.Paragraph.update_embeddinged(paragraph_id=part.id)
+                try:
+                    Milvus.collection.insert([
+                        sentences,
+                        embeddings["sparse"],
+                        embeddings["dense"],
+                        parts,
+                        documents,
+                    ])
+                    models.Paragraph.update_embeddinged(paragraph_id=part.id)
+                except Exception as e:
+                    logger.error(f"title={part.title}")
+                    logger.error(f"error={e}")

@@ -8,6 +8,7 @@ from django.db.models import (
     DateTimeField,
 )
 from django.utils import timezone
+from django.forms.models import model_to_dict
 
 
 def get_uid():
@@ -27,3 +28,9 @@ class BaseModel(Model):
     @classmethod
     def get_by_id(cls, id):
         return cls.objects.filter(id=id).first()
+
+    def json(self, exclude=None):
+        exclude_fields = ["_id", "is_deleted"]
+        if exclude:
+            exclude_fields.extend(exclude)
+        return model_to_dict(self, exclude=exclude_fields)

@@ -9,9 +9,8 @@ from typing import (
 
 from ninja import Redoc
 from ninja import NinjaAPI, Router
+from ninja.errors import HttpError
 from ninja.security import HttpBearer
-from ninja.throttling import BaseThrottle
-from ninja.constants import NOT_SET, NOT_SET_TYPE
 
 from main import results
 from main.response import OkResponse
@@ -23,6 +22,16 @@ class TokenAuth(HttpBearer):
     def authenticate(self, request, token):
         if token == "supersecret":
             return token
+
+
+class ProjectIDHeader:
+
+    def __call__(self, request):
+        project_id = request.headers.get("x-project-id")
+        if not project_id:
+            raise HttpError(400, "Missing project_id header")
+        request.project_id = project_id
+        return project_id
 
 
 class MyRouter(Router):
@@ -43,9 +52,9 @@ class MyRouter(Router):
 api = NinjaAPI(title="RAGX API", version="0.1.0")
 
 project_router = MyRouter(tags=["project"])
-report_router = MyRouter(tags=["report"])
-document_router = MyRouter(tags=["document"])
-paragraph_router = MyRouter(tags=["paragraph"])
+report_router = MyRouter(tags=["report"], auth=ProjectIDHeader())
+document_router = MyRouter(tags=["document"], auth=ProjectIDHeader())
+paragraph_router = MyRouter(tags=["paragraph"], auth=ProjectIDHeader())
 
 api.add_router("project", project_router)
 api.add_router("report", report_router)

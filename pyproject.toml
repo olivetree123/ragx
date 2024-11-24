@@ -59,7 +59,14 @@ redis = "^5.2.0"
 langchain = "^0.3.7"
 pymilvus = {extras = ["model"], version = "^2.4.9"}
 colorlog = "^6.9.0"
+torch = {version = "2.3.1", source = "pytorch"}
+sentence-transformers = "^3.3.1"
+elasticsearch = "^8.16.0"
 
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu121/"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]

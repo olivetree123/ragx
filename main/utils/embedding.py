@@ -11,7 +11,7 @@ class EmbeddingFunction(object):
             use_fp16=False,
             device="cuda",
             model_name=
-            "./models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181"
+            "E:/mounts/models/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181"
         )
 
     @classmethod

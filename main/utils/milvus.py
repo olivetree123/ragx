@@ -4,6 +4,7 @@ from pymilvus import (
     CollectionSchema,
     DataType,
     Collection,
+    utility,
 )
 from django.conf import settings
 
@@ -27,8 +28,12 @@ class Milvus(object):
             FieldSchema(name="dense_vector",
                         dtype=DataType.FLOAT_VECTOR,
                         dim=1024),
-            FieldSchema(name="paragraph_id", dtype=DataType.INT32),
-            FieldSchema(name="document_id", dtype=DataType.INT32),
+            FieldSchema(name="paragraph_id",
+                        dtype=DataType.VARCHAR,
+                        max_length=32),
+            FieldSchema(name="document_id",
+                        dtype=DataType.VARCHAR,
+                        max_length=32),
         ]
         schema = CollectionSchema(fields=fields, description="ragx collection")
         cls.collection = Collection(name=settings.MILVUS_COLLECTION,
@@ -50,3 +55,10 @@ class Milvus(object):
 
         # 加载collection，将该collection的索引加载到内存
         cls.collection.load()
+
+    @classmethod
+    def drop_collection(cls, collection_name):
+        connections.connect(host=settings.MILVUS_HOST,
+                            port=settings.MILVUS_PORT,
+                            db_name=settings.MILVUS_DB)
+        utility.drop_collection(collection_name)

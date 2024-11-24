@@ -14,6 +14,10 @@ class Paragraph(BaseModel):
         db_table = "paragraph"
 
     @classmethod
+    def get_by_id(cls, id, project_id):
+        return cls.objects.filter(id=id, project_id=project_id).first()
+
+    @classmethod
     def list_unembeddinged(cls):
         return Paragraph.objects.filter(is_embeddinged=False)
 

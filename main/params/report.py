@@ -30,5 +30,4 @@ class MarkReportParam(Schema):
     query: str = Field(..., description="查询内容")
     methods: List[str] = Field(..., description="方法列表")
     paragraph_id: int = Field(..., description="段落ID")
-    project_id: str = Field(..., description="项目ID")
     score: int = Field(..., description="0: 待处理, 1: 有效, -1 无效")

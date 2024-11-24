@@ -10,13 +10,15 @@ from main.response import (
     FailResponse,
     APIStatus,
 )
+from main.md.current import current_project
 
 
 def GetReportHandler(request, report_id: str):
     try:
-        report = models.Report.objects.get(id=report_id)
+        report = models.Report.objects.get(id=report_id,
+                                           project_id=current_project())
     except models.Report.DoesNotExist:
-        return FailResponse(code=APIStatus.OBJECT_NOT_FOUND)
+        return FailResponse(code=APIStatus.OBJECT_NOT_FOUND, message="报告不存在")
     return OkResponse(results.ReportResult.from_orm(report))
 
 
@@ -62,7 +64,7 @@ def MarkReportHandler(request, param: params.MarkReportParam):
     report = models.Report.get_by_query(query=param.query,
                                         methods=param.methods,
                                         paragraph_id=param.paragraph_id,
-                                        project_id=param.project_id)
+                                        project_id=current_project())
     if not report:
         return FailResponse(code=APIStatus.OBJECT_NOT_FOUND)
     report.score = param.score

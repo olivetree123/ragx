@@ -55,7 +55,7 @@ MIDDLEWARE = [
     # 'django.contrib.messages.middleware.MessageMiddleware',
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'main.md.timer.ApiTimeMiddleWare',
-    # 'main.md.response.ResponseMiddleWare',
+    'main.md.current.CurrentRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'ragx.urls'
@@ -144,3 +144,6 @@ MILVUS_HOST = env.get_str("MILVUS_HOST", "127.0.0.1")
 MILVUS_PORT = env.get_int("MILVUS_PORT", 19530)
 MILVUS_DB = env.get_str("MILVUS_DB", "default")
 MILVUS_COLLECTION = env.get_str("MILVUS_COLLECTION", "ragx")
+
+# ES
+ES_BASE_URL = env.get_str("ES_BASE_URL")
