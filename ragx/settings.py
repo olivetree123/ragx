@@ -147,6 +147,7 @@ MILVUS_COLLECTION = env.get_str("MILVUS_COLLECTION", "ragx")
 
 # ES
 ES_BASE_URL = env.get_str("ES_BASE_URL")
+ES_INDEX_NAME = env.get_str("ES_INDEX_NAME")
 
 # reranker
 RERANKER_BASE_URL = env.get_str("RERANKER_BASE_URL")

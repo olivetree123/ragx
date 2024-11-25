@@ -8,8 +8,10 @@ from pymilvus import (
     Hits,
 )
 from ninja import Schema, Field
+from openai import OpenAI
 
 from main import (
+    dao,
     models,
     params,
     results,
@@ -24,6 +26,11 @@ from main.utils.embedding import EmbeddingFunction
 from main.utils.es import es_search
 from main.utils.milvus import Milvus
 from main.utils.reranker import rerank_service
+from main.utils.openai import check_relatedness
+from main.utils.ollama import OllamaClient
+from main.utils.log import get_logger
+
+logger = get_logger(name="handlers.chat")
 
 
 # 发送消息请求模型
@@ -32,121 +39,108 @@ class SendMessageRequest(Schema):
     content: str
 
 
+# method = Milvus-ES-Rerank
 def ChatV1Handler(request, message: SendMessageRequest):
+    method = "Milvus-ES-Rerank"
     # 1. ES关键字查询
     titles = es_search(message.content)
-    names = [title + ".md" for title in titles]
-    documents = models.Document.list_by_names(names=names)
-    paragraphs = models.Paragraph.filter_by_document_id_list(
-        [doc.id for doc in documents])
+    names = [title for title in titles]
+    paragraphs = dao.Paragraph.filter_by_doc_names(names=names)
     paragraph_id_list = [p.id for p in paragraphs]
-    # print("es hits = ", paragraph_id_list)
 
     # 2. 从向量数据库查询
-    query_embeddings = EmbeddingFunction.call([message.content])
-    query_dense_embedding = query_embeddings["dense"][0]
-    query_sparse_embedding = query_embeddings["sparse"]
-
-    sparse_weight = dense_weight = 1.0
-    dense_search_params = {"metric_type": "IP", "params": {}}
-    dense_req = AnnSearchRequest([query_dense_embedding],
-                                 "dense_vector",
-                                 dense_search_params,
-                                 limit=40)
-    sparse_search_params = {"metric_type": "IP", "params": {}}
-    sparse_req = AnnSearchRequest([query_sparse_embedding],
-                                  "sparse_vector",
-                                  sparse_search_params,
-                                  limit=40)
-    # rerank = WeightedRanker(sparse_weight, dense_weight)
-    rerank = RRFRanker()
-    hits: Hits = Milvus.collection.hybrid_search(
-        [sparse_req, dense_req],
-        rerank=rerank,
-        limit=40,
-        output_fields=["text", "document_id", "paragraph_id"])[0]
-
-    # hits = vector_store.search(query=message.content,
-    #                             search_type="similarity",
-    #                             k=10)
-    # paragraph_id_list += [hit.metadata["paragraph_id"] for hit in hits]
-    # print("milvus hits = ", [hit.get("paragraph_id") for hit in hits])
+    hits: Hits = dao.Milvus.hybrid_search(text=message.content, limit=40)
 
     # 3. 组合查询结果
     paragraph_id_list += [hit.get("paragraph_id") for hit in hits]
-    # print("total hits = ", list(set(paragraph_id_list)))
-    paragraphs = models.Paragraph.filter_by_id_list(
-        paragraph_id_list=paragraph_id_list)
+
+    paragraphs = models.Paragraph.list_by_ids(ids=paragraph_id_list,
+                                              project_id=current_project())
 
     paragraphs = [{
         "id": p.id,
         "title": p.title,
         "content": p.content,
-        "doc_id": p.document_id
+        "doc_id": p.document_id,
+        "doc_title": p.document.title,
     } for p in paragraphs]
 
     report = [{
         "query": message.content,
-        "method": "Milvus-ES-Rerank",
+        "method": method,
         "paragraph_id": p["id"],
         "paragraph_title": p["title"],
         "paragraph_content": p["content"],
         "doc_id": p["doc_id"],
-        "doc_name": "",
+        "doc_title": p["doc_title"],
         "project_id": current_project(),
     } for p in paragraphs]
 
     result_paragraph_titles = [p["title"] for p in paragraphs]
-    # result_paragraph_contents = [p["content"] for p in paragraphs]
 
-    # 重排序方式1：按段落标题和内容重排序
-    # rerank_data = [
-    #     result_paragraph_titles[i] + " " + result_paragraph_contents[i]
-    #     for i in range(len(result_paragraph_titles))
-    # ]
-
-    # 重排序方式2：按段落标题重排序
-    # 4. 重排序
+    # 4. 重排序，按段落标题重排序
     scores = rerank_service(message.content, result_paragraph_titles)
-
     for i, score in enumerate(scores):
         if score < -0.5:
             report[i] = None
             # result_paragraph_contents[i] = ""
 
     report = [item for item in report if item]
-    # result_paragraph_contents = [
-    #     item for item in result_paragraph_contents if item
-    # ]
 
-    # 5. 上报到ragx
-    try:
-        ragx.add_report(data=report)
-    except:
-        import traceback
-        traceback.print_exc()
+    # 使用大模型过滤结果
+    positive = negative = 0
+    for item in report:
+        item["method"] = f"{method}-gpt4omini"
+        relatedness = check_relatedness(item["doc_title"], message.content)
+        # item["score"] = 1 if relatedness else -1
+        if relatedness:
+            positive += 1
+            item["score"] = 1
+        else:
+            negative += 1
+            item["score"] = -1
+    models.Report.objects.bulk_create(report)
 
-    # TODO: 测试中，暂时不记住聊天历史
-    # chat_history = get_history(session=session, scene_id=message.scene_id)
-    # chat_history = []
-    # current_msg = HumanMessage(question=message.content,
-    #                            paragraph_list=result_paragraph_contents)
-    # chat_history.append(current_msg.json())
-    # response_content = together_chat(messages=chat_history)
-    # print("response_content=", response_content)
-    # models.Message.send_to_assitant(session=session,
-    #                                 scene_id=message.scene_id,
-    #                                 sender_role=MessageRole.USER,
-    #                                 sender_user=current_user.id,
-    #                                 paragraph_list=paragraph_id_list,
-    #                                 content=message.content)
-    # models.Message.send_to_user(session=session,
-    #                             scene_id=message.scene_id,
-    #                             sender_role=MessageRole.ASSISTANT,
-    #                             recipient_user=current_user.id,
-    #                             content=response_content)
-    return {
-        "status": 1,
-        "error": "",
-        "data": "",
-    }
+    logger.info(f"method={method}-gpt4omini, "
+                "positive={positive}, "
+                "negative={negative}")
+
+    # 使用大模型过滤结果
+    positive = negative = 0
+    for item in report:
+        item["method"] = f"{method}-qwen2.5:7b"
+        relatedness = OllamaClient.check_relatedness(item["doc_title"],
+                                                     message.content,
+                                                     model="qwen2.5:7b")
+        if relatedness:
+            positive += 1
+            item["score"] = 1
+        else:
+            negative += 1
+            item["score"] = -1
+    models.Report.objects.bulk_create(report)
+
+    logger.info(f"method={method}-qwen2.5:7b, "
+                "positive={positive}, "
+                "negative={negative}")
+
+    # 使用大模型过滤结果
+    positive = negative = 0
+    for item in report:
+        item["method"] = f"{method}-llama3.2:3b"
+        relatedness = OllamaClient.check_relatedness(item["doc_title"],
+                                                     message.content,
+                                                     model="llama3.2:3b")
+        if relatedness:
+            positive += 1
+            item["score"] = 1
+        else:
+            negative += 1
+            item["score"] = -1
+    models.Report.objects.bulk_create(report)
+
+    logger.info(f"method={method}-llama3.2:3b, "
+                "positive={positive}, "
+                "negative={negative}")
+
+    return OkResponse()

@@ -1,3 +1,5 @@
+from typing import List
+
 from django.db.models import (
     Index,
     CharField,
@@ -28,6 +30,10 @@ class Document(BaseModel):
     def list_by_project(cls, project_id):
         return Document.objects.filter(
             project_id=project_id).order_by("-edit_at")
+
+    @classmethod
+    def list_by_names(cls, names: List[str]):
+        return Document.objects.filter(title__in=names)
 
     @classmethod
     def list_unparagraphed(cls):

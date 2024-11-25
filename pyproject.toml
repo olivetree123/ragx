@@ -62,6 +62,8 @@ colorlog = "^6.9.0"
 torch = {version = "2.3.1", source = "pytorch"}
 sentence-transformers = "^3.3.1"
 elasticsearch = "^8.16.0"
+openai = "^1.55.0"
+ollama = "^0.4.1"
 
 [[tool.poetry.source]]
 name = "pytorch"

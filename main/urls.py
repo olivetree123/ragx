@@ -14,7 +14,13 @@ from ninja.security import HttpBearer
 
 from main import results
 from main.response import OkResponse
-from main.handlers import project, report, document, paragraph
+from main.handlers import (
+    chat,
+    project,
+    report,
+    document,
+    paragraph,
+)
 
 
 class TokenAuth(HttpBearer):
@@ -55,6 +61,7 @@ project_router = MyRouter(tags=["project"])
 report_router = MyRouter(tags=["report"], auth=ProjectIDHeader())
 document_router = MyRouter(tags=["document"], auth=ProjectIDHeader())
 paragraph_router = MyRouter(tags=["paragraph"], auth=ProjectIDHeader())
+chat_router = MyRouter(tags=["project"], auth=ProjectIDHeader())
 
 api.add_router("project", project_router)
 api.add_router("report", report_router)
@@ -128,4 +135,5 @@ paragraph_router.get("{paragraph_id}",
                      paragraph.GetParagraphHandler,
                      summary="| 获取段落详情",
                      response=OkResponse[results.ParagraphResult])
-# urlpatterns = []
+
+chat_router.post("chat/v1", chat.ChatV1Handler, summary="| 聊天")
