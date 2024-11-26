@@ -4,3 +4,4 @@ __pycache__
 *.db
 .vscode
 migrations
+models--BAAI--bge-reranker-v2-m3

@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 
 from main import models
 from main.utils.log import get_logger
-from main.utils.milvus import Milvus
+from main.utils.milvus import MilvusClient
 from main.utils.embedding import EmbeddingFunction
 from main.utils.splitter_md import MarkChunkHandler
 
@@ -14,12 +14,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Milvus.drop_collection("ragx")
-        Milvus.init()
+        MilvusClient.init()
         while True:
             ps = list(models.Paragraph.list_unembeddinged()[:1000])
             if not ps:
                 break
+            logger.info(f"len paragraphs = {len(ps)}")
             for part in ps:
+                # logger.info(f"paragraph={part.title}")
                 text = part.title + "\n" + part.content
                 _sentences = MarkChunkHandler.handle([text])
                 documents = [part.document_id] * len(_sentences)
@@ -29,7 +31,7 @@ class Command(BaseCommand):
                     continue
                 embeddings = EmbeddingFunction.call(sentences)
                 try:
-                    Milvus.collection.insert([
+                    MilvusClient.collection.insert([
                         sentences,
                         embeddings["sparse"],
                         embeddings["dense"],
@@ -40,3 +42,4 @@ class Command(BaseCommand):
                 except Exception as e:
                     logger.error(f"title={part.title}")
                     logger.error(f"error={e}")
+                    models.Paragraph.update_embeddinged(paragraph_id=part.id)

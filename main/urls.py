@@ -61,12 +61,13 @@ project_router = MyRouter(tags=["project"])
 report_router = MyRouter(tags=["report"], auth=ProjectIDHeader())
 document_router = MyRouter(tags=["document"], auth=ProjectIDHeader())
 paragraph_router = MyRouter(tags=["paragraph"], auth=ProjectIDHeader())
-chat_router = MyRouter(tags=["project"], auth=ProjectIDHeader())
+chat_router = MyRouter(tags=["chat"], auth=ProjectIDHeader())
 
 api.add_router("project", project_router)
 api.add_router("report", report_router)
 api.add_router("document", document_router)
 api.add_router("paragraph", paragraph_router)
+api.add_router("chat", chat_router)
 
 project_router.post("create",
                     project.CreateProjectHandler,
@@ -136,4 +137,4 @@ paragraph_router.get("{paragraph_id}",
                      summary="| 获取段落详情",
                      response=OkResponse[results.ParagraphResult])
 
-chat_router.post("chat/v1", chat.ChatV1Handler, summary="| 聊天")
+chat_router.post("v1", chat.ChatV1Handler, summary="| 聊天")

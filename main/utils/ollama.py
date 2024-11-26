@@ -21,6 +21,18 @@ class OllamaClient(object):
         return False
 
 
+if __name__ == "__main__":
+    # 示例用法
+    query = "人才落户政策有哪些？"
+    title = "老年人落户"
+
+    relatedness = OllamaClient.check_relatedness(query,
+                                                 title,
+                                                 model="llama3.2:3b")
+    print(f"查询问题: {query}")
+    print(f"文章标题: {title}")
+    print(f"相关性判断: {relatedness}")
+
 # client = Client(host="http://localhost:11434",
 #                 headers={"x-some-header": "some-value"})
 # response: ChatResponse = client.chat(model="llama3.2",

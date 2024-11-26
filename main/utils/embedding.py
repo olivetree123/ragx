@@ -9,7 +9,6 @@ class EmbeddingFunction(object):
     def init(cls):
         cls._func = BGEM3EmbeddingFunction(
             use_fp16=False,
-            device="cuda",
             model_name=
             "E:/mounts/models/models--BAAI--bge-m3/snapshots/5617a9f61b028005a4858fdac845db406aefb181"
         )

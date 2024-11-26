@@ -1,5 +1,9 @@
 import time
 
+from main.utils.log import get_logger
+
+logger = get_logger("utils.timer")
+
 
 class Timer(object):
 
@@ -12,4 +16,4 @@ class Timer(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         t = round(time.time() - self.start_time, 3)
-        print(f"[{self.name}]耗时：{t}s")
+        logger.info(f"[{self.name}]耗时：{t}s")

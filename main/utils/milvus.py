@@ -9,7 +9,7 @@ from pymilvus import (
 from django.conf import settings
 
 
-class Milvus(object):
+class MilvusClient(object):
     collection = None
 
     @classmethod

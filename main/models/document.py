@@ -32,6 +32,10 @@ class Document(BaseModel):
             project_id=project_id).order_by("-edit_at")
 
     @classmethod
+    def list_by_ids(cls, ids: List[str]):
+        return Document.objects.filter(id__in=ids)
+
+    @classmethod
     def list_by_names(cls, names: List[str]):
         return Document.objects.filter(title__in=names)
 

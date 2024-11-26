@@ -6,7 +6,7 @@ from pymilvus import (
     AnnSearchRequest,
 )
 
-from main.utils.milvus import Milvus
+from main.utils.milvus import MilvusClient
 from main.utils.embedding import EmbeddingFunction
 
 
@@ -31,7 +31,7 @@ class Milvus(object):
                                       limit=40)
         # rerank = WeightedRanker(sparse_weight, dense_weight)
         rerank = RRFRanker()
-        hits: Hits = Milvus.collection.hybrid_search(
+        hits: Hits = MilvusClient.collection.hybrid_search(
             [sparse_req, dense_req],
             rerank=rerank,
             limit=40,

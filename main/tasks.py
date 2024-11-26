@@ -4,7 +4,7 @@ from celery import shared_task
 
 from main import models
 from main.utils.log import get_logger
-from main.utils.milvus import Milvus
+from main.utils.milvus import MilvusClient
 from main.utils.embedding import EmbeddingFunction
 from main.utils.splitter_md import MarkdownSplitter, MarkChunkHandler
 
@@ -29,7 +29,7 @@ def doc_handle(doc_id, doc_content, project_id):
             if not sentences:
                 continue
             embeddings = EmbeddingFunction.call(sentences)
-            Milvus.collection.insert([
+            MilvusClient.collection.insert([
                 sentences,
                 embeddings["sparse"],
                 embeddings["dense"],
@@ -46,7 +46,7 @@ def doc_handle(doc_id, doc_content, project_id):
 def doc_delete(doc_id):
     """删除文章时，删除文章的所有段落和向量"""
     try:
-        Milvus.collection.delete(f"document_id in {[doc_id]}")
+        MilvusClient.collection.delete(f"document_id in {[doc_id]}")
         models.Paragraph.objects.filter(document_id=doc_id).delete()
     except Exception:
         logger.error(f"Failed to delete doc, doc_id: {doc_id}")
